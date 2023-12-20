@@ -61,16 +61,19 @@ DOCUMENT_ID = environ.get("DOCUMENT_ID")
 logging.debug('add_to_stream.py --- DOCUMENT_ID: %s', DOCUMENT_ID)
 
 DOCUMENT_FILE_NAME = environ.get("DOCUMENT_FILE_NAME")
+DOCUMENT_ORIGINAL_FILENAME = environ.get("DOCUMENT_ORIGINAL_FILENAME")
 
 
 documentId = DOCUMENT_ID
 filename = DOCUMENT_FILE_NAME
+original_filename = DOCUMENT_ORIGINAL_FILENAME
 tags = DOCUMENT_TAGS
 
 # generate payload
 payload = {
     "documentId": documentId,
     "filename": filename,
+    "original_filename": original_filename,
     "tags": tags,
     "content": get_content(documentId)
 }
@@ -78,12 +81,10 @@ payload = {
 json = json.dumps(payload)
 logging.debug('Payload: %s', json)
 
-# generate uuid
-aggregateId = uuid.uuid4()
-logging.debug('Aggregate ID: %s', aggregateId)
+aggregateId =  original_filename.split(".")[0]
 
 logging.debug('Adding Document ID: %s', documentId)
 redis = connect_to_redis()
-addToStream(redis, "DocumentAdded", str(aggregateId), json)
+addToStream(redis, "DocumentAdded", aggregateId, json)
 logging.debug('Added Document ID: %s', documentId)
 redis.close()
