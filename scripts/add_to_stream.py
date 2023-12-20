@@ -5,11 +5,31 @@ from os import environ
 from redis import Redis
 from datetime import datetime
 import json
+import requests
 
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(message)s')
 stream_key = environ.get("STREAM_KEY", "paperless-server:stream")
 service_name = environ.get("SERVICE_NAME", "paperless-server")
+
+
+PAPERLESS_SECRET_KEY = environ.get("PAPERLESS_SECRET_KEY")
+PAPERLESS_URL = environ.get("PAPERLESS_URL", "http://localhost:8000")
+
+def get_content(documentId):
+    # logging.debug('PAPERLESS_SECRET_KEY: %s', PAPERLESS_SECRET_KEY)
+    logging.debug('PAPERLESS_URL: %s', PAPERLESS_URL)
+    url = f"{PAPERLESS_URL}/api/documents/{documentId}/?format=json"
+    headers = {"Content-Type": "application/json", "Accept": "application/json", "Authorization":"Token " + PAPERLESS_SECRET_KEY}
+    response = requests.get(url, headers=headers)
+    logging.debug('response: %s', response)
+    logging.debug('response.status_code: %s', response.status_code)
+    # logging.debug('response.text: %s', response.text)
+    # logging.debug('response.json(): %s', response.json())
+    # Get field content from json response
+    content = response.json().get("content")
+    return content
+
 
 
 def connect_to_redis():
@@ -51,7 +71,8 @@ tags = DOCUMENT_TAGS
 payload = {
     "documentId": documentId,
     "filename": filename,
-    "tags": tags
+    "tags": tags,
+    "content": get_content(documentId)
 }
 # create json string from payload
 json = json.dumps(payload)

@@ -69,7 +69,7 @@ services:
       - ./export:/usr/src/paperless/export
       - ./consume:/usr/src/paperless/consume
       - ./scripts:/usr/src/paperless/src/scripts
-    env_file: docker-compose.env
+    env_file: .env
     environment:
       PAPERLESS_REDIS: redis://broker:6379
       PAPERLESS_DBHOST: db
