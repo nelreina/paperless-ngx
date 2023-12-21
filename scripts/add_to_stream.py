@@ -15,22 +15,20 @@ service_name = environ.get("SERVICE_NAME", "paperless-server")
 
 PAPERLESS_SECRET_KEY = environ.get("PAPERLESS_SECRET_KEY")
 PAPERLESS_URL = environ.get("PAPERLESS_URL", "http://localhost:8000")
+headers = {"Content-Type": "application/json", "Accept": "application/json", "Authorization":"Token " + PAPERLESS_SECRET_KEY}
 
-def get_content(documentId):
+def get_document(documentId):
     # logging.debug('PAPERLESS_SECRET_KEY: %s', PAPERLESS_SECRET_KEY)
     logging.debug('PAPERLESS_URL: %s', PAPERLESS_URL)
     url = f"{PAPERLESS_URL}/api/documents/{documentId}/?format=json"
-    headers = {"Content-Type": "application/json", "Accept": "application/json", "Authorization":"Token " + PAPERLESS_SECRET_KEY}
     response = requests.get(url, headers=headers)
-    logging.debug('response: %s', response)
-    logging.debug('response.status_code: %s', response.status_code)
-    # logging.debug('response.text: %s', response.text)
-    # logging.debug('response.json(): %s', response.json())
-    # Get field content from json response
-    content = response.json().get("content")
-    return content
 
+    return response.json()
 
+def get_document_type(id):
+    url = f"{PAPERLESS_URL}/api/document_types/{id}/?format=json"
+    response = requests.get(url, headers=headers)
+    return response.json()
 
 def connect_to_redis():
     hostname = environ.get("REDIS_HOST", "localhost")
@@ -69,13 +67,22 @@ filename = DOCUMENT_FILE_NAME
 original_filename = DOCUMENT_ORIGINAL_FILENAME
 tags = DOCUMENT_TAGS
 
+document = get_document(documentId)
+document_type_id = document.get("document_type")
+# If document_type_id is None, then the document is a receipt
+if document_type_id is None:
+    document_type = ""
+else: 
+    document_type = get_document_type(document_type_id)
+
 # generate payload
 payload = {
     "documentId": documentId,
     "filename": filename,
     "original_filename": original_filename,
     "tags": tags,
-    "content": get_content(documentId)
+    "content": document.get("content"),
+    "type": document_type.get("name"),
 }
 # create json string from payload
 json = json.dumps(payload)
