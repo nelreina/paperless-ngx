@@ -92,6 +92,6 @@ aggregateId =  original_filename.split(".")[0]
 
 logging.debug('Adding Document ID: %s', documentId)
 redis = connect_to_redis()
-addToStream(redis, "DocumentAdded", aggregateId, json)
+addToStream(redis, "DOCUMENT-ADDED", aggregateId, json)
 logging.debug('Added Document ID: %s', documentId)
 redis.close()
