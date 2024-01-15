@@ -14,7 +14,7 @@ service_name = environ.get("SERVICE_NAME", "paperless-server")
 
 
 PAPERLESS_SECRET_KEY = environ.get("PAPERLESS_SECRET_KEY")
-PAPERLESS_URL = environ.get("PAPERLESS_URL", "http://localhost:8000")
+PAPERLESS_URL = "http://localhost:8000"
 headers = {"Content-Type": "application/json", "Accept": "application/json", "Authorization":"Token " + PAPERLESS_SECRET_KEY}
 
 def get_document(documentId):
@@ -88,7 +88,7 @@ payload = {
 json = json.dumps(payload)
 logging.debug('Payload: %s', json)
 
-aggregateId =  original_filename.split(".")[0]
+aggregateId =  str(uuid.uuid4())
 
 logging.debug('Adding Document ID: %s', documentId)
 redis = connect_to_redis()
